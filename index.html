@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,10 +7,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Firebase Time Manager</title>
+    <title>Firebase Time Control</title>
 
     <!-- Firebase -->
-
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
@@ -25,9 +25,9 @@
         .container{
 
             width:90%;
-            max-width:400px;
+            max-width:450px;
 
-            margin:50px auto;
+            margin:40px auto;
 
             background:white;
 
@@ -39,6 +39,7 @@
         }
 
         h2{
+
             text-align:center;
             color:#333;
         }
@@ -107,240 +108,288 @@
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <h2>Firebase Time Manager</h2>
+    <h2>Firebase Time Control</h2>
 
-        <input type="text" id="name" placeholder="Enter Name">
+    <input type="text" id="name" placeholder="Enter Name">
 
-        <input type="password" id="password" placeholder="Enter Password">
+    <input type="password" id="password" placeholder="Enter Password">
 
-        <input type="text" id="time" placeholder="Enter Time">
+    <label>Start Time</label>
+    <input type="datetime-local" id="startTime">
 
-        <button onclick="insertData()">Insert Record</button>
+    <label>End Time</label>
+    <input type="datetime-local" id="endTime">
 
-        <button onclick="updateTime()">Update Time</button>
+    <button onclick="insertData()">Insert Record</button>
 
-        <button onclick="getTime()">Retrieve Time</button>
+    <button onclick="updateTime()">Update Time</button>
 
-        <div id="output">Ready...</div>
+    <button onclick="getTime()">Retrieve Time</button>
 
-    </div>
+    <button onclick="checkCurrentTime()">Check Current Status</button>
 
+    <div id="output">Ready...</div>
 
-    <script>
-
-        // FIREBASE CONFIG
-
-        const firebaseConfig = {
-
-            apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
-
-            authDomain: "notpad-3d676.firebaseapp.com",
-
-            databaseURL: "https://notpad-3d676-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-            projectId: "notpad-3d676",
-
-            storageBucket: "notpad-3d676.firebasestorage.app",
-
-            messagingSenderId: "66178659039",
-
-            appId: "1:66178659039:web:35f23f05e092e5c0762f6a"
-
-        };
+</div>
 
 
-        // INITIALIZE FIREBASE
+<script>
 
-        firebase.initializeApp(firebaseConfig);
+    // FIREBASE CONFIG
 
-        const database = firebase.database();
+    const firebaseConfig = {
+
+        apiKey: "YOUR_API_KEY",
+
+        authDomain: "YOUR_AUTH_DOMAIN",
+
+        databaseURL: "YOUR_DATABASE_URL",
+
+        projectId: "YOUR_PROJECT_ID",
+
+        storageBucket: "YOUR_BUCKET",
+
+        messagingSenderId: "YOUR_SENDER_ID",
+
+        appId: "YOUR_APP_ID"
+    };
 
 
-        function show(message){
+    firebase.initializeApp(firebaseConfig);
 
-            document.getElementById("output").innerHTML = message;
+    const database = firebase.database();
 
-            console.log(message);
+
+    function show(message){
+
+        document.getElementById("output").innerHTML = message;
+
+        console.log(message);
+    }
+
+
+    // OPTIONAL TIME OFFSET
+    // Example:
+    // 2 = add 2 hours
+    // -3 = subtract 3 hours
+
+    const TIME_OFFSET_HOURS = 0;
+
+
+    function applyOffset(date){
+
+        date.setHours(date.getHours() + TIME_OFFSET_HOURS);
+
+        return date;
+    }
+
+
+    function getUTCString(localValue){
+
+        let date = new Date(localValue);
+
+        date = applyOffset(date);
+
+        return date.toISOString();
+    }
+
+
+
+    // INSERT DATA
+
+    function insertData(){
+
+        let name = document.getElementById("name").value.trim();
+
+        let password = document.getElementById("password").value.trim();
+
+        let startTime = document.getElementById("startTime").value;
+
+        let endTime = document.getElementById("endTime").value;
+
+
+        if(name === "" || password === "" || startTime === "" || endTime === ""){
+
+            show("Please fill all fields");
+
+            return;
         }
 
 
+        database.ref("users/" + name).once("value")
 
-        // INSERT RECORD
+        .then((snapshot)=>{
 
-        function insertData(){
+            if(snapshot.exists()){
 
-            let name = document.getElementById("name").value.trim();
+                show("User already exists");
 
-            let password = document.getElementById("password").value.trim();
+            }else{
 
-            let time = document.getElementById("time").value.trim();
+                database.ref("users/" + name).set({
 
+                    password: password,
 
-            if(name === "" || password === "" || time === ""){
+                    startTime: getUTCString(startTime),
 
-                show("Please fill all fields");
+                    endTime: getUTCString(endTime)
 
-                return;
+                })
+
+                .then(()=>{
+
+                    show("Record Inserted Successfully");
+
+                })
+
+                .catch((error)=>{
+
+                    show("Insert Error : " + error.message);
+
+                });
+
             }
 
+        });
 
-            database.ref("users/" + name).once("value")
+    }
 
-            .then((snapshot)=>{
 
-                if(snapshot.exists()){
 
-                    show("User already exists");
+    // UPDATE TIME
 
-                }else{
+    function updateTime(){
 
-                    database.ref("users/" + name).set({
+        let name = document.getElementById("name").value.trim();
 
-                        password: password,
-                        time: time
+        let password = document.getElementById("password").value.trim();
+
+        let startTime = document.getElementById("startTime").value;
+
+        let endTime = document.getElementById("endTime").value;
+
+
+        database.ref("users/" + name).once("value")
+
+        .then((snapshot)=>{
+
+            if(snapshot.exists()){
+
+                let data = snapshot.val();
+
+                if(data.password === password){
+
+                    database.ref("users/" + name).update({
+
+                        startTime: getUTCString(startTime),
+
+                        endTime: getUTCString(endTime)
 
                     })
 
                     .then(()=>{
 
-                        show("Record Inserted Successfully");
-
-                    })
-
-                    .catch((error)=>{
-
-                        show("Insert Error : " + error.message);
+                        show("Time Updated Successfully");
 
                     });
 
-                }
-
-            })
-
-            .catch((error)=>{
-
-                show("Firebase Error : " + error.message);
-
-            });
-
-        }
-
-
-
-        // UPDATE TIME
-
-        function updateTime(){
-
-            let name = document.getElementById("name").value.trim();
-
-            let password = document.getElementById("password").value.trim();
-
-            let time = document.getElementById("time").value.trim();
-
-
-            database.ref("users/" + name).once("value")
-
-            .then((snapshot)=>{
-
-                if(snapshot.exists()){
-
-                    let data = snapshot.val();
-
-                    if(data.password === password){
-
-                        database.ref("users/" + name).update({
-
-                            time: time
-
-                        })
-
-                        .then(()=>{
-
-                            show("Time Updated Successfully");
-
-                        })
-
-                        .catch((error)=>{
-
-                            show("Update Error : " + error.message);
-
-                        });
-
-                    }else{
-
-                        show("Wrong Password");
-
-                    }
-
                 }else{
 
-                    show("User Not Found");
-
+                    show("Wrong Password");
                 }
 
-            })
+            }else{
 
-            .catch((error)=>{
-
-                show("Firebase Error : " + error.message);
-
-            });
-
-        }
-
-
-
-        // RETRIEVE TIME
-
-        function getTime(){
-
-            let name = document.getElementById("name").value.trim();
-
-
-            if(name === ""){
-
-                show("Enter Name");
-
-                return;
+                show("User Not Found");
             }
 
+        });
 
-            database.ref("users/" + name).once("value")
+    }
 
-            .then((snapshot)=>{
 
-                if(snapshot.exists()){
 
-                    let data = snapshot.val();
+    // RETRIEVE DATA
 
-                    show(
+    function getTime(){
 
-                        "Name : " + name +
+        let name = document.getElementById("name").value.trim();
 
-                        "\nTime : " + data.time
+        database.ref("users/" + name).once("value")
 
-                    );
+        .then((snapshot)=>{
+
+            if(snapshot.exists()){
+
+                let data = snapshot.val();
+
+                show(
+
+                    "Name : " + name +
+
+                    "\nStart : " + data.startTime +
+
+                    "\nEnd : " + data.endTime
+                );
+
+            }else{
+
+                show("User Not Found");
+            }
+
+        });
+
+    }
+
+
+
+    // CHECK CURRENT STATUS
+
+    function checkCurrentTime(){
+
+        let name = document.getElementById("name").value.trim();
+
+        database.ref("users/" + name).once("value")
+
+        .then((snapshot)=>{
+
+            if(snapshot.exists()){
+
+                let data = snapshot.val();
+
+                let now = new Date();
+
+                now = applyOffset(now);
+
+                let current = now.getTime();
+
+                let start = new Date(data.startTime).getTime();
+
+                let end = new Date(data.endTime).getTime();
+
+
+                if(current >= start && current <= end){
+
+                    show("ACTIVE TIME");
 
                 }else{
 
-                    show("User Not Found");
-
+                    show("INACTIVE TIME");
                 }
 
-            })
+            }else{
 
-            .catch((error)=>{
+                show("User Not Found");
+            }
 
-                show("Retrieve Error : " + error.message);
+        });
 
-            });
+    }
 
-        }
-
-    </script>
+</script>
 
 </body>
-
 </html>
+```
