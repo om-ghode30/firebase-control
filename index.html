@@ -94,131 +94,194 @@
 
     </div>
 
-    <script>
+   <script>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
-            authDomain: "notpad-3d676.firebaseapp.com",
-            databaseURL: "https://notpad-3d676-default-rtdb.firebaseio.com",
-            projectId: "notpad-3d676",
-            storageBucket: "notpad-3d676.firebasestorage.app",
-            messagingSenderId: "66178659039",
-            appId: "1:66178659039:web:35f23f05e092e5c0762f6a",
-            measurementId: "G-5L5ZQKGK8M"
-        };
-
-        // Initialize Firebase
-
-        firebase.initializeApp(firebaseConfig);
-
-        const database = firebase.database();
+const firebaseConfig = {
+    apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
+    authDomain: "notpad-3d676.firebaseapp.com",
+    databaseURL: "https://notpad-3d676-default-rtdb.firebaseio.com",
+    projectId: "notpad-3d676",
+    storageBucket: "notpad-3d676.firebasestorage.app",
+    messagingSenderId: "66178659039",
+    appId: "1:66178659039:web:35f23f05e092e5c0762f6a"
+};
 
 
-        // INSERT NEW RECORD
+// Initialize Firebase
 
-        function insertData() {
+firebase.initializeApp(firebaseConfig);
 
-            let name = document.getElementById("name").value;
-            let password = document.getElementById("password").value;
-            let time = document.getElementById("time").value;
+const database = firebase.database();
 
-            if(name === "" || password === "" || time === ""){
+document.getElementById("output").innerHTML =
+"Firebase Connected";
 
-                alert("Please fill all fields");
-                return;
+
+// INSERT DATA
+
+function insertData(){
+
+    let name = document.getElementById("name").value;
+    let password = document.getElementById("password").value;
+    let time = document.getElementById("time").value;
+
+    if(name==="" || password==="" || time===""){
+
+        document.getElementById("output").innerHTML =
+        "Please fill all fields";
+
+        return;
+    }
+
+    database.ref("users/" + name).once("value")
+
+    .then((snapshot)=>{
+
+        if(snapshot.exists()){
+
+            document.getElementById("output").innerHTML =
+            "User already exists";
+
+        }else{
+
+            database.ref("users/" + name).set({
+
+                password: password,
+                time: time
+
+            })
+
+            .then(()=>{
+
+                document.getElementById("output").innerHTML =
+                "Record Inserted Successfully";
+
+            })
+
+            .catch((error)=>{
+
+                document.getElementById("output").innerHTML =
+                "Insert Error : " + error.message;
+
+                console.log(error);
+
+            });
+
+        }
+
+    })
+
+    .catch((error)=>{
+
+        document.getElementById("output").innerHTML =
+        "Firebase Error : " + error.message;
+
+        console.log(error);
+
+    });
+
+}
+
+
+
+// UPDATE TIME
+
+function updateTime(){
+
+    let name = document.getElementById("name").value;
+    let password = document.getElementById("password").value;
+    let time = document.getElementById("time").value;
+
+    database.ref("users/" + name).once("value")
+
+    .then((snapshot)=>{
+
+        if(snapshot.exists()){
+
+            let data = snapshot.val();
+
+            if(data.password === password){
+
+                database.ref("users/" + name).update({
+
+                    time: time
+
+                })
+
+                .then(()=>{
+
+                    document.getElementById("output").innerHTML =
+                    "Time Updated Successfully";
+
+                });
+
+            }else{
+
+                document.getElementById("output").innerHTML =
+                "Wrong Password";
+
             }
 
-            database.ref("users/" + name).once("value")
-            .then((snapshot) => {
+        }else{
 
-                if(snapshot.exists()){
-
-                    alert("Name already exists");
-
-                } else {
-
-                    database.ref("users/" + name).set({
-                        password: password,
-                        time: time
-                    });
-
-                    alert("Record Inserted");
-
-                }
-
-            });
+            document.getElementById("output").innerHTML =
+            "User Not Found";
 
         }
 
+    })
 
-        // UPDATE TIME
+    .catch((error)=>{
 
-        function updateTime() {
+        document.getElementById("output").innerHTML =
+        "Update Error : " + error.message;
 
-            let name = document.getElementById("name").value;
-            let password = document.getElementById("password").value;
-            let time = document.getElementById("time").value;
+        console.log(error);
 
-            database.ref("users/" + name).once("value")
-            .then((snapshot) => {
+    });
 
-                if(snapshot.exists()){
-
-                    let data = snapshot.val();
-
-                    if(data.password === password){
-
-                        database.ref("users/" + name).update({
-                            time: time
-                        });
-
-                        alert("Time Updated");
-
-                    } else {
-
-                        alert("Wrong Password");
-
-                    }
-
-                } else {
-
-                    alert("User Not Found");
-
-                }
-
-            });
-
-        }
+}
 
 
-        // RETRIEVE TIME
 
-        function getTime() {
+// GET TIME
 
-            let name = document.getElementById("name").value;
+function getTime(){
 
-            database.ref("users/" + name).once("value")
-            .then((snapshot) => {
+    let name = document.getElementById("name").value;
 
-                if(snapshot.exists()){
+    database.ref("users/" + name).once("value")
 
-                    let data = snapshot.val();
+    .then((snapshot)=>{
 
-                    document.getElementById("output").innerHTML =
-                        "Time : " + data.time;
+        if(snapshot.exists()){
 
-                } else {
+            let data = snapshot.val();
 
-                    document.getElementById("output").innerHTML =
-                        "User Not Found";
+            document.getElementById("output").innerHTML =
+            "Time : " + data.time;
 
-                }
+        }else{
 
-            });
+            document.getElementById("output").innerHTML =
+            "User Not Found";
 
         }
 
-    </script>
+    })
+
+    .catch((error)=>{
+
+        document.getElementById("output").innerHTML =
+        "Retrieve Error : " + error.message;
+
+        console.log(error);
+
+    });
+
+}
+
+            </script>
 
 </body>
 </html>
