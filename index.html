@@ -1,28 +1,224 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Firebase Control Panel</title>
-    <link rel="stylesheet" href="style.css">
+<html lang="en">
 
-    <!-- Firebase SDK -->
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Firebase Time Manager</title>
+
+    <style>
+
+        body{
+            margin:0;
+            padding:0;
+            font-family:Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:90%;
+            max-width:400px;
+            margin:50px auto;
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0px 0px 10px rgba(0,0,0,0.2);
+        }
+
+        h2{
+            text-align:center;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            border:1px solid #ccc;
+            border-radius:5px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            border:none;
+            border-radius:5px;
+            background:#007bff;
+            color:white;
+            font-size:16px;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#0056b3;
+        }
+
+        #output{
+            margin-top:20px;
+            text-align:center;
+            color:green;
+        }
+
+    </style>
+
+    <!-- Firebase -->
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 </head>
+
 <body>
 
     <div class="container">
-        <h1>Firebase Control</h1>
 
-        <input type="text" id="key" placeholder="Enter Key">
-        <input type="text" id="value" placeholder="Enter Value">
+        <h2>Firebase Time Manager</h2>
 
-        <button onclick="saveData()">Save Data</button>
-        <button onclick="readData()">Read Data</button>
+        <input type="text" id="name" placeholder="Enter Name">
 
-        <h3>Output:</h3>
-        <pre id="output"></pre>
+        <input type="password" id="password" placeholder="Enter Password">
+
+        <input type="text" id="time" placeholder="Enter Time">
+
+        <button onclick="insertData()">Insert Record</button>
+
+        <button onclick="updateTime()">Update Time</button>
+
+        <button onclick="getTime()">Retrieve Time</button>
+
+        <h3 id="output"></h3>
+
     </div>
 
-    <script src="app.js"></script>
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
+            authDomain: "notpad-3d676.firebaseapp.com",
+            databaseURL: "https://notpad-3d676-default-rtdb.firebaseio.com",
+            projectId: "notpad-3d676",
+            storageBucket: "notpad-3d676.firebasestorage.app",
+            messagingSenderId: "66178659039",
+            appId: "1:66178659039:web:35f23f05e092e5c0762f6a",
+            measurementId: "G-5L5ZQKGK8M"
+        };
+
+        // Initialize Firebase
+
+        firebase.initializeApp(firebaseConfig);
+
+        const database = firebase.database();
+
+
+        // INSERT NEW RECORD
+
+        function insertData() {
+
+            let name = document.getElementById("name").value;
+            let password = document.getElementById("password").value;
+            let time = document.getElementById("time").value;
+
+            if(name === "" || password === "" || time === ""){
+
+                alert("Please fill all fields");
+                return;
+            }
+
+            database.ref("users/" + name).once("value")
+            .then((snapshot) => {
+
+                if(snapshot.exists()){
+
+                    alert("Name already exists");
+
+                } else {
+
+                    database.ref("users/" + name).set({
+                        password: password,
+                        time: time
+                    });
+
+                    alert("Record Inserted");
+
+                }
+
+            });
+
+        }
+
+
+        // UPDATE TIME
+
+        function updateTime() {
+
+            let name = document.getElementById("name").value;
+            let password = document.getElementById("password").value;
+            let time = document.getElementById("time").value;
+
+            database.ref("users/" + name).once("value")
+            .then((snapshot) => {
+
+                if(snapshot.exists()){
+
+                    let data = snapshot.val();
+
+                    if(data.password === password){
+
+                        database.ref("users/" + name).update({
+                            time: time
+                        });
+
+                        alert("Time Updated");
+
+                    } else {
+
+                        alert("Wrong Password");
+
+                    }
+
+                } else {
+
+                    alert("User Not Found");
+
+                }
+
+            });
+
+        }
+
+
+        // RETRIEVE TIME
+
+        function getTime() {
+
+            let name = document.getElementById("name").value;
+
+            database.ref("users/" + name).once("value")
+            .then((snapshot) => {
+
+                if(snapshot.exists()){
+
+                    let data = snapshot.val();
+
+                    document.getElementById("output").innerHTML =
+                        "Time : " + data.time;
+
+                } else {
+
+                    document.getElementById("output").innerHTML =
+                        "User Not Found";
+
+                }
+
+            });
+
+        }
+
+    </script>
+
 </body>
 </html>
