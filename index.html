@@ -1,26 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Test</title>
 
-    <title>Firebase Time Manager</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <style>
 
         body{
-            margin:0;
-            padding:0;
             font-family:Arial;
+            padding:20px;
             background:#f2f2f2;
         }
 
-        .container{
-            width:90%;
-            max-width:400px;
-            margin:50px auto;
+        .box{
             background:white;
             padding:20px;
             border-radius:10px;
@@ -28,260 +24,128 @@
         }
 
         h2{
-            text-align:center;
-        }
-
-        input{
-            width:100%;
-            padding:12px;
-            margin-top:10px;
-            border:1px solid #ccc;
-            border-radius:5px;
-            box-sizing:border-box;
-        }
-
-        button{
-            width:100%;
-            padding:12px;
-            margin-top:10px;
-            border:none;
-            border-radius:5px;
-            background:#007bff;
-            color:white;
-            font-size:16px;
-            cursor:pointer;
-        }
-
-        button:hover{
-            background:#0056b3;
-        }
-
-        #output{
-            margin-top:20px;
-            text-align:center;
             color:green;
         }
 
+        pre{
+            background:#eee;
+            padding:10px;
+            border-radius:5px;
+            white-space:pre-wrap;
+        }
+
     </style>
-
-    <!-- Firebase -->
-
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 </head>
 
 <body>
 
-    <div class="container">
+    <div class="box">
 
-        <h2>Firebase Time Manager</h2>
+        <h2>Firebase Connection Test</h2>
 
-        <input type="text" id="name" placeholder="Enter Name">
-
-        <input type="password" id="password" placeholder="Enter Password">
-
-        <input type="text" id="time" placeholder="Enter Time">
-
-        <button onclick="insertData()">Insert Record</button>
-
-        <button onclick="updateTime()">Update Time</button>
-
-        <button onclick="getTime()">Retrieve Time</button>
-
-        <h3 id="output"></h3>
+        <pre id="output">Starting...</pre>
 
     </div>
 
-   <script>
+    <script>
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
-    authDomain: "notpad-3d676.firebaseapp.com",
-    databaseURL: "https://notpad-3d676-default-rtdb.firebaseio.com",
-    projectId: "notpad-3d676",
-    storageBucket: "notpad-3d676.firebasestorage.app",
-    messagingSenderId: "66178659039",
-    appId: "1:66178659039:web:35f23f05e092e5c0762f6a"
-};
+        const output = document.getElementById("output");
 
+        function log(message){
 
-// Initialize Firebase
+            console.log(message);
 
-firebase.initializeApp(firebaseConfig);
-
-const database = firebase.database();
-
-document.getElementById("output").innerHTML =
-"Firebase Connected";
+            output.innerHTML += "\n" + message;
+        }
 
 
-// INSERT DATA
+        // FIREBASE CONFIG
 
-function insertData(){
+        const firebaseConfig = {
 
-    let name = document.getElementById("name").value;
-    let password = document.getElementById("password").value;
-    let time = document.getElementById("time").value;
+            apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
 
-    if(name==="" || password==="" || time===""){
+            authDomain: "notpad-3d676.firebaseapp.com",
 
-        document.getElementById("output").innerHTML =
-        "Please fill all fields";
+            databaseURL: "https://notpad-3d676-default-rtdb.firebaseio.com",
 
-        return;
-    }
+            projectId: "notpad-3d676",
 
-    database.ref("users/" + name).once("value")
+            storageBucket: "notpad-3d676.firebasestorage.app",
 
-    .then((snapshot)=>{
+            messagingSenderId: "66178659039",
 
-        if(snapshot.exists()){
+            appId: "1:66178659039:web:35f23f05e092e5c0762f6a"
 
-            document.getElementById("output").innerHTML =
-            "User already exists";
+        };
 
-        }else{
 
-            database.ref("users/" + name).set({
+        try{
 
-                password: password,
-                time: time
+            log("Initializing Firebase...");
 
-            })
+            firebase.initializeApp(firebaseConfig);
 
-            .then(()=>{
+            log("Firebase Initialized Successfully");
 
-                document.getElementById("output").innerHTML =
-                "Record Inserted Successfully";
+        }
+        catch(error){
 
-            })
-
-            .catch((error)=>{
-
-                document.getElementById("output").innerHTML =
-                "Insert Error : " + error.message;
-
-                console.log(error);
-
-            });
+            log("Firebase Init Error:");
+            log(error.message);
 
         }
 
-    })
 
-    .catch((error)=>{
-
-        document.getElementById("output").innerHTML =
-        "Firebase Error : " + error.message;
-
-        console.log(error);
-
-    });
-
-}
+        const database = firebase.database();
 
 
+        // TEST WRITE
 
-// UPDATE TIME
+        log("Trying to WRITE test data...");
 
-function updateTime(){
+        database.ref("test").set({
 
-    let name = document.getElementById("name").value;
-    let password = document.getElementById("password").value;
-    let time = document.getElementById("time").value;
+            message: "Hello Firebase",
+            time: new Date().toString()
 
-    database.ref("users/" + name).once("value")
+        })
 
-    .then((snapshot)=>{
+        .then(()=>{
 
-        if(snapshot.exists()){
+            log("WRITE SUCCESS");
 
-            let data = snapshot.val();
+            // TEST READ
 
-            if(data.password === password){
+            log("Trying to READ data...");
 
-                database.ref("users/" + name).update({
+            return database.ref("test").once("value");
 
-                    time: time
+        })
 
-                })
+        .then((snapshot)=>{
 
-                .then(()=>{
+            log("READ SUCCESS");
 
-                    document.getElementById("output").innerHTML =
-                    "Time Updated Successfully";
+            log("DATA RECEIVED:");
 
-                });
+            log(JSON.stringify(snapshot.val(), null, 2));
 
-            }else{
+        })
 
-                document.getElementById("output").innerHTML =
-                "Wrong Password";
+        .catch((error)=>{
 
-            }
+            log("FIREBASE ERROR:");
 
-        }else{
+            log(error.message);
 
-            document.getElementById("output").innerHTML =
-            "User Not Found";
+            console.log(error);
 
-        }
+        });
 
-    })
-
-    .catch((error)=>{
-
-        document.getElementById("output").innerHTML =
-        "Update Error : " + error.message;
-
-        console.log(error);
-
-    });
-
-}
-
-
-
-// GET TIME
-
-function getTime(){
-
-    let name = document.getElementById("name").value;
-
-    database.ref("users/" + name).once("value")
-
-    .then((snapshot)=>{
-
-        if(snapshot.exists()){
-
-            let data = snapshot.val();
-
-            document.getElementById("output").innerHTML =
-            "Time : " + data.time;
-
-        }else{
-
-            document.getElementById("output").innerHTML =
-            "User Not Found";
-
-        }
-
-    })
-
-    .catch((error)=>{
-
-        document.getElementById("output").innerHTML =
-        "Retrieve Error : " + error.message;
-
-        console.log(error);
-
-    });
-
-}
-
-            </script>
+    </script>
 
 </body>
+
 </html>
