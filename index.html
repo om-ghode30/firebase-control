@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-    <title>Firebase Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Firebase Time Manager</title>
+
+    <!-- Firebase -->
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -11,26 +16,88 @@
     <style>
 
         body{
-            font-family:Arial;
-            padding:20px;
+            margin:0;
+            padding:0;
             background:#f2f2f2;
+            font-family:Arial;
         }
 
-        .box{
+        .container{
+
+            width:90%;
+            max-width:400px;
+
+            margin:50px auto;
+
             background:white;
+
             padding:20px;
+
             border-radius:10px;
+
             box-shadow:0px 0px 10px rgba(0,0,0,0.2);
         }
 
         h2{
-            color:green;
+            text-align:center;
+            color:#333;
         }
 
-        pre{
-            background:#eee;
-            padding:10px;
+        input{
+
+            width:100%;
+
+            padding:12px;
+
+            margin-top:10px;
+
+            border:1px solid #ccc;
+
             border-radius:5px;
+
+            box-sizing:border-box;
+
+            font-size:16px;
+        }
+
+        button{
+
+            width:100%;
+
+            padding:12px;
+
+            margin-top:10px;
+
+            border:none;
+
+            border-radius:5px;
+
+            background:#007bff;
+
+            color:white;
+
+            font-size:16px;
+
+            cursor:pointer;
+        }
+
+        button:hover{
+
+            background:#0056b3;
+        }
+
+        #output{
+
+            margin-top:20px;
+
+            background:#eee;
+
+            padding:10px;
+
+            border-radius:5px;
+
+            min-height:40px;
+
             white-space:pre-wrap;
         }
 
@@ -40,25 +107,28 @@
 
 <body>
 
-    <div class="box">
+    <div class="container">
 
-        <h2>Firebase Connection Test</h2>
+        <h2>Firebase Time Manager</h2>
 
-        <pre id="output">Starting...</pre>
+        <input type="text" id="name" placeholder="Enter Name">
+
+        <input type="password" id="password" placeholder="Enter Password">
+
+        <input type="text" id="time" placeholder="Enter Time">
+
+        <button onclick="insertData()">Insert Record</button>
+
+        <button onclick="updateTime()">Update Time</button>
+
+        <button onclick="getTime()">Retrieve Time</button>
+
+        <div id="output">Ready...</div>
 
     </div>
 
+
     <script>
-
-        const output = document.getElementById("output");
-
-        function log(message){
-
-            console.log(message);
-
-            output.innerHTML += "\n" + message;
-        }
-
 
         // FIREBASE CONFIG
 
@@ -66,10 +136,10 @@
 
             apiKey: "AIzaSyCuY3P3c-Rkk0Dy017wUzNbtaw8zg3JWnE",
 
-            authDomain: "notpad-3d676.firebaseapp.com",          
-                
+            authDomain: "notpad-3d676.firebaseapp.com",
+
             databaseURL: "https://notpad-3d676-default-rtdb.asia-southeast1.firebasedatabase.app",
-    
+
             projectId: "notpad-3d676",
 
             storageBucket: "notpad-3d676.firebasestorage.app",
@@ -81,68 +151,193 @@
         };
 
 
-        try{
+        // INITIALIZE FIREBASE
 
-            log("Initializing Firebase...");
-
-            firebase.initializeApp(firebaseConfig);
-
-            log("Firebase Initialized Successfully");
-
-        }
-        catch(error){
-
-            log("Firebase Init Error:");
-            log(error.message);
-
-        }
-
+        firebase.initializeApp(firebaseConfig);
 
         const database = firebase.database();
 
 
-        // TEST WRITE
+        function show(message){
 
-        log("Trying to WRITE test data...");
+            document.getElementById("output").innerHTML = message;
 
-        database.ref("test").set({
+            console.log(message);
+        }
 
-            message: "Hello Firebase",
-            time: new Date().toString()
 
-        })
 
-        .then(()=>{
+        // INSERT RECORD
 
-            log("WRITE SUCCESS");
+        function insertData(){
 
-            // TEST READ
+            let name = document.getElementById("name").value.trim();
 
-            log("Trying to READ data...");
+            let password = document.getElementById("password").value.trim();
 
-            return database.ref("test").once("value");
+            let time = document.getElementById("time").value.trim();
 
-        })
 
-        .then((snapshot)=>{
+            if(name === "" || password === "" || time === ""){
 
-            log("READ SUCCESS");
+                show("Please fill all fields");
 
-            log("DATA RECEIVED:");
+                return;
+            }
 
-            log(JSON.stringify(snapshot.val(), null, 2));
 
-        })
+            database.ref("users/" + name).once("value")
 
-        .catch((error)=>{
+            .then((snapshot)=>{
 
-            log("FIREBASE ERROR:");
+                if(snapshot.exists()){
 
-            log(error.message);
+                    show("User already exists");
 
-            console.log(error);
+                }else{
 
-        });
+                    database.ref("users/" + name).set({
+
+                        password: password,
+                        time: time
+
+                    })
+
+                    .then(()=>{
+
+                        show("Record Inserted Successfully");
+
+                    })
+
+                    .catch((error)=>{
+
+                        show("Insert Error : " + error.message);
+
+                    });
+
+                }
+
+            })
+
+            .catch((error)=>{
+
+                show("Firebase Error : " + error.message);
+
+            });
+
+        }
+
+
+
+        // UPDATE TIME
+
+        function updateTime(){
+
+            let name = document.getElementById("name").value.trim();
+
+            let password = document.getElementById("password").value.trim();
+
+            let time = document.getElementById("time").value.trim();
+
+
+            database.ref("users/" + name).once("value")
+
+            .then((snapshot)=>{
+
+                if(snapshot.exists()){
+
+                    let data = snapshot.val();
+
+                    if(data.password === password){
+
+                        database.ref("users/" + name).update({
+
+                            time: time
+
+                        })
+
+                        .then(()=>{
+
+                            show("Time Updated Successfully");
+
+                        })
+
+                        .catch((error)=>{
+
+                            show("Update Error : " + error.message);
+
+                        });
+
+                    }else{
+
+                        show("Wrong Password");
+
+                    }
+
+                }else{
+
+                    show("User Not Found");
+
+                }
+
+            })
+
+            .catch((error)=>{
+
+                show("Firebase Error : " + error.message);
+
+            });
+
+        }
+
+
+
+        // RETRIEVE TIME
+
+        function getTime(){
+
+            let name = document.getElementById("name").value.trim();
+
+
+            if(name === ""){
+
+                show("Enter Name");
+
+                return;
+            }
+
+
+            database.ref("users/" + name).once("value")
+
+            .then((snapshot)=>{
+
+                if(snapshot.exists()){
+
+                    let data = snapshot.val();
+
+                    show(
+
+                        "Name : " + name +
+
+                        "\nTime : " + data.time
+
+                    );
+
+                }else{
+
+                    show("User Not Found");
+
+                }
+
+            })
+
+            .catch((error)=>{
+
+                show("Retrieve Error : " + error.message);
+
+            });
+
+        }
 
     </script>
 
