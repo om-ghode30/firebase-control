@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Control Panel</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Firebase Control</h1>
+
+        <input type="text" id="key" placeholder="Enter Key">
+        <input type="text" id="value" placeholder="Enter Value">
+
+        <button onclick="saveData()">Save Data</button>
+        <button onclick="readData()">Read Data</button>
+
+        <h3>Output:</h3>
+        <pre id="output"></pre>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
